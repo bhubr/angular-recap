@@ -197,3 +197,82 @@ On obtiendra l'affichage du logo d'Angular.
 On appelle ceci un _binding_ ou "liaison" : la valeur de l'attribut `src` de la balise est _liée_ à celle de l'attribut `imageUrl` dans la classe TS.
 
 > Le commit correspondant à l'ajout du titre et de l'image se trouve [ici](https://github.com/bhubr/angular-recap-app/commit/2ad5faa8b9993482a174782479295d6091a7fc79). 
+
+## 4.5. Rendu conditionnel
+
+Le rendu conditionnel consiste à afficher un élément si une condition est remplie. Par exemple, ajoutons ceci dans `BlogComponent`, sous les attributs `title` et `imageUrl`. C'est un booléen qui indique si l'application est en train de charger des données (même si c'est factice pour l'instant).
+
+```typescript
+isLoading = true;
+```
+
+Dans la méthode `ngOnInit`, ajoutons cette ligne qui va faire passer ce booléen à `false` après 2 secondes :
+
+```typescript
+setTimeout(() => { this.isLoading = false; }, 2000);
+```
+
+Remplaçons _tout le contenu_ du template `blog.component.html` par ceci :
+
+```html
+<p *ngIf="isLoading">Loading data, please wait!</p>
+<div *ngIf="!isLoading">
+  <h2>{{ title }}</h2>
+  <img [src]="imageUrl" alt="Angular logo" />
+</div>
+```
+
+Le paragraphe `Loading data, please wait!` va s'afficher immédiatement au rechargement de l'application. Puis, après deux secondes, c'est la `div` juste en-dessous qui va s'afficher.
+
+> Lr code ci-dessus est dans [ce commit](https://github.com/bhubr/angular-recap-app/commit/ba035e42d3b674ad7033a0e1b98f358cec8c43f2).
+
+C'est la directive `*ngIf` qui permet de réaliser cela, en fonction d'une condition. Cela marche avec d'autres données que des booléens : si on indique une valeur non-booléenne, celle-ci va être convertie implicitement en booléen (on dit parfois _castée_). Les valeurs `0`, `''` (chaîne vide), `NaN`, `null` et `undefined` seront équivalentes à `false`, les autres valeurs à `true`.
+
+
+## 4.6. Répétition
+
+Un cas omniprésent dans les applications web : répéter des éléments. Le plus souvent, on va charger, depuis une "API", un tableau (exemples avec l'[API GitHub](https://api.github.com/users) et l'[API Pokémon](https://pokeapi.co/api/v2/pokemon/)).
+
+On va donc répéter certains composants pour refléter ces données (par exemple, afficher autant de "cards" qu'on a d'utilisateurs ou de pokémons dans un tableau).
+
+Commençons par ajouter à la partie TypeScript du composant `BlogComponent`, **au-dessus** du décorateur `@Component`, le typage d'un objet "post", représentant un article de blog :
+
+```typescript
+interface Post {
+  id: number;
+  title: string;
+  body: string
+}
+```
+
+Notez qu'on aurait pu utiliser une classe (mot-clé `class`) ou un type (mot-clé `type`). Une interface est suffisante si on n'a pas besoin d'ajouter de _méthodes_ à notre type.
+
+Puis _dans_ la classe  `BlogComponent`, ajoutons un 4ème attribut, `posts` :
+
+```typescript
+posts: Post[] = [
+  {
+    id: 1,
+    title: 'sunt aut facere repellat',
+    body: 'quia et suscipit\nsuscipit recusandae',
+  },
+  {
+    id: 2,
+    title: 'qui est esse',
+    body: 'est rerum tempore vitae\nsequi sint nihil',
+  },
+];
+```
+
+Enfin, dans le template, ajoutons ces lignes sous l'image (vous noterez, dans le commit, qu'on a limité la hauteur de cette dernière, afin que les articles soient visibles) :
+
+```html
+<article *ngFor="let post of posts">
+  <h3>{{ post.title }}</h3>
+  <p>{{ post.body }}</p>
+</article>
+```
+
+C'est la directive `*ngFor` qui permet de répéter un élément (que ce soit une **balise HTML5** classique, comme ici `article`, ou un **composant** Angular).
+
+Ici, `let post of posts` signifie qu'on déclare une variable "locale" `post`, qui va prendre successivement comme valeur _chacun des objets contenus dans `posts`_. Cette variable n'est valable qu'à l'intérieur du bloc délimité par les balises `article`. On peut alors accéder aux attributs `title` et `body` d'un objet `Post` à la fois.
