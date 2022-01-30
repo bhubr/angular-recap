@@ -276,3 +276,67 @@ Enfin, dans le template, ajoutons ces lignes sous l'image (vous noterez, dans le
 C'est la directive `*ngFor` qui permet de répéter un élément (que ce soit une **balise HTML5** classique, comme ici `article`, ou un **composant** Angular).
 
 Ici, `let post of posts` signifie qu'on déclare une variable "locale" `post`, qui va prendre successivement comme valeur _chacun des objets contenus dans `posts`_. Cette variable n'est valable qu'à l'intérieur du bloc délimité par les balises `article`. On peut alors accéder aux attributs `title` et `body` d'un objet `Post` à la fois.
+
+> Le commit est [ici](https://github.com/bhubr/angular-recap-app/commit/48d2544c8e9ebd7374cc237c26506c1dbca7ecf7).
+
+## 4.7. Passage de données entre composants
+
+Dans l'exemple précédent, le bloc délimité par les balises `article` pourrait très bien devenir un composant à part entière. Cela deviendra particulièrement intéressant si on souhaite le réutiliser ailleurs dans l'application.
+
+C'est donc ce que nous allons faire. Pour le générer : `ng g c post-card --skip-tests`.
+
+Nous allons ensuite _couper_ le bloc `<article>...</article>` de `blog.component.html`, le coller dans `post-card.component.html`, et **enlever** le `*ngFor` :
+
+```html
+<article>
+  <h3>{{ post.title }}</h3>
+  <p>{{ post.body }}</p>
+</article>
+```
+
+À l'endroit où il se trouvait dans `blog.component.html`, on va écrire ceci, qui permet :
+
+* de répéter le composant `app-post-card`,
+* de lui _passer une "propriété"_ nommée `post` dont la valeur (à droite du `=`) est la "variable locale" `post` créée par `*ngFor`.
+
+```html
+<app-post-card
+  *ngFor="let post of posts"
+  [post]="post"
+></app-post-card>
+```
+
+**Si on en reste là**, on hérite d'une erreur :
+
+    src/app/blog/blog.component.html:8:5 - error NG8002: Can't bind to 'post' since it isn't a known property of 'app-post-card'.
+
+C'est dû au fait qu'on passe une donnée nommée `post`, qu'on n'a pas déclarée préalablement.
+
+Il faut :
+
+* Déplacer l'interface `Post` dans un fichier à part (par exemple `src/app/types.ts`) et de là, l'exporter.
+* L'importer depuis les composants `BlogComponent` et `PostCardComponent`.
+* Déclarer un attribut `post` de type `Post` dans `PostCardComponent`.
+
+On ne montre ici que le code dans `PostCardComponent`, dont on ne montre que les parties modifiées :
+
+```typescript
+import { Component, OnInit, Input } from '@angular/core';
+import { Post } from '../types';
+
+@Component({ /* ... caché ... */ })
+export class PostCardComponent implements OnInit {
+  @Input() post!: Post;
+
+  // ... caché ...
+}
+```
+
+En bref :
+
+* On a importé le "décorateur" `Input`,
+* On a également importé l'interface `Post`,
+* On utilise le décorateur `Input` pour spécifier que `post` est un attribut "spécial" : sa valeur n'est pas donnée _dans cette classe_, elle est _passée depuis le composant parent_.
+* Le `!` permet de "relâcher" les contrôles de TypeScript. On lui "assure" que `post` aura toujours une valeur &mdash; autrement dit, qu'on va **toujours** bien passer la valeur depuis le composant parent.
+
+> Le reste du code modifié est visible sur [ce commit](https://github.com/bhubr/angular-recap-app/commit/08cd89962a08cdbe2d1408c204947eb397efadcb).
