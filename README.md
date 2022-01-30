@@ -50,6 +50,8 @@ CREATE angular-recap-app/package.json (1081 bytes)
 ✔ Packages installed successfully.
 ```
 
+> Une application de démo a été publiée sur GitHub à cette adresse : <https://github.com/bhubr/angular-recap-app>
+
 ### 3.3. Démarrer l'application
 
 Deux commandes strictement équivalentes :
@@ -70,6 +72,8 @@ Cette dernière est un "script" défini dans `package.json`, qui appelle `ng ser
  
 ## 4. Composants
 
+La page [Introduction to components and templates](https://angular.io/guide/architecture-components) de la doc officielle est une bonne référence sur ce sujet.
+
 ### 4.1. Création d'un nouveau composant
 
 * Pour initialiser un nouveau composant (nommé ici `some-component`) : `ng generate component some-component --skip-tests`, qui peut être abrégé en `ng g c some-component --skip-tests`.
@@ -85,9 +89,111 @@ Cette dernière est un "script" défini dans `package.json`, qui appelle `ng ser
 
 Dans l'application `angular-recap-app`, on a lancé la commande : `ng g c blog --skip-tests`.
 
+Après cela, on a effectué un _commit_ Git.
 
+> Voici l'adresse de ce commit sur GitHub, où apparaissent toutes les différences par rapport à l'état précédent de l'application : <https://github.com/bhubr/angular-recap-app/commit/696d16f907fb1ac4b7a780e74740206881196629>
+
+À noter : le fichier `.css` généré est initialement vide.
+
+Le fichier template `.html` contient ce contenu temporaire :
+
+```html
+<p>blog works!</p>
+```
+
+Le fichier `.ts` contient ceci :
+
+```typescript
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-blog',
+  templateUrl: './blog.component.html',
+  styleUrls: ['./blog.component.css']
+})
+export class BlogComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+}
+```
+
+Il faut noter :
+
+* Le **sélecteur** `selector`, qui servira pour "appeler" (afficher) le composant depuis un autre composant : `app-blog`.
+* L'URL du fichier template, `templateUrl`, qui indique l'emplacement du fichier `.html`.
+* Les URL des feuilles de styles, `styleUrls` : c'est un tableau, il peut donc y avoir plusieurs fichiers `.css`.
+
+Dans le corps du composant :
+
+* Le constructeur est pour l'instant vide.
+* `ngOnInit()` est une méthode appelée juste après que le composant ait été inséré dans la page.
 
 ### 4.3. Exemple
 
+Pour "appeler" ce composant depuis le composant principal, on supprime tout le contenu de `src/app/app.component.html`, on le remplace par ceci (notez que ceci correspond au sélecteur mentionné ci-dessus) :
 
-Pour "appeler" ce composant (l'afficher) depuis le composant principal, on supprime tout le contenu de `src/app/app.component.html`, 
+```html
+<app-blog></app-blog>
+```
+
+> Le commit correspondant est [ici](https://github.com/bhubr/angular-recap-app/commit/6a7aff4e762cbe5b2fa1928420ccdaefa69030cb) (le code ajouté ci-dessus est tout en bas de la page).
+
+### 4.4. Interpolation et bindings
+
+Angular permet d'"injecter" des "expressions" à l'intérieur d'un template HTML. C'est ce qu'on appelle l'interpolation.
+
+### 4.4.1. Expression simple 
+
+Ce premier exemple affichera `Two plus two is 4` :
+
+```html
+<p>Two plus two is {{ 2 + 2 }}</p>
+```
+
+### 4.4.2. Attribut (de la classe TS)
+
+Le plus souvent, à l'intérieur des doubles accolades, on injectera la valeur d'un **attribut** défini dans la classe TypeScript.
+
+Si on ajoute ceci à l'intérieur de la classe `BlogComponent`, juste au-dessus du `constructor` :
+
+```typescript
+title = 'My personal blog';
+```
+
+Et qu'on ajoute cette paire de balises dans le template correspondant :
+
+```html
+<h2>{{ title }}</h2>
+```
+
+Alors le titre `My personal blog` s'affichera dans un titre `h2`.
+
+### 4.4.3. Attribut (d'une balise HTML)
+
+On peut utiliser cette syntaxe également pour donner une valeur à un attribut d'une balise HTML. Si on ajoute au fichier `.ts` :
+
+```typescript
+imageUrl = 'https://angular.io/assets/images/logos/angular/angular.svg';
+```
+
+Et au fichier `.html` :
+
+```html
+<img src="{{ imageUrl }}" alt="Angular logo" />
+```
+
+On obtiendra l'affichage du logo d'Angular.
+
+**Généralement**, pour les attributs de balise, on préférera cette syntaxe (l'autre reste très utilisée pour le contenu _entre deux balises_) :
+
+```html
+<img [src]="imageUrl" alt="Angular logo" />
+```
+
+On appelle ceci un _binding_ ou "liaison" : la valeur de l'attribut `src` de la balise est _liée_ à celle de l'attribut `imageUrl` dans la classe TS.
+
+> Le commit correspondant à l'ajout du titre et de l'image se trouve [ici](https://github.com/bhubr/angular-recap-app/commit/2ad5faa8b9993482a174782479295d6091a7fc79). 
